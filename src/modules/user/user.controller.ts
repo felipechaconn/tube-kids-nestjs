@@ -18,19 +18,19 @@ export class UserController {
   constructor(private readonly _userService: UserService) {}
 
   @Get(':id')
-  async getUser(@Param('id',ParseIntPipe) id: number): Promise<UserDTO> {
+  async getUser(@Param('id',ParseIntPipe) id: number): Promise<User> {
     const user = await this._userService.getOne(id);
     return user;
   }
 
   @Get()
-  async getUsers(): Promise<UserDTO[]> {
+  async getUsers(): Promise<User[]> {
     const users = await this._userService.getAll();
     return users;
   }
 
   @Post('createUser')
-  async createUser(@Body() user: User): Promise<UserDTO> {
+  async createUser(@Body() user: User): Promise<User> {
     const createdUser = await this._userService.create(user);
     return createdUser;
   }
@@ -39,7 +39,7 @@ export class UserController {
   async updateUser(
     @Param('id',ParseIntPipe) id: number,
     @Body() user: User,
-  ): Promise<UserDTO | void> {
+  ): Promise<User | void> {
     const updatedUser = await this._userService.update(id, user);
     return updatedUser;
   }

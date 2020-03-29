@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MapperService } from '../../common/mapper.service';
 import { async } from 'rxjs/internal/scheduler/async';
 import { UserDTO } from './dto/user.dto';
 import { User } from './user.entity';
@@ -17,10 +16,9 @@ export class UserService {
   constructor(
     @InjectRepository(UserRepository)
     private readonly _userRepository: UserRepository,
-    private readonly _mapperService: MapperService,
   ) {}
 
-  public async getOne(id: number): Promise<UserDTO> {
+  public async getOne(id: number): Promise<User> {
     if (!id) {
       throw new BadRequestException('id must be sent');
     }
@@ -33,10 +31,10 @@ export class UserService {
       throw new NotFoundException();
     }
 
-    return this._mapperService.map<User, UserDTO>(user, new UserDTO());
+    return user;
   }
 
-  public async getAll(): Promise<UserDTO[]> {
+  public async getAll(): Promise<User[]> {
     const users: User[] = await this._userRepository.find({
       where: { status: 'ACTIVE' },
     });
@@ -45,10 +43,7 @@ export class UserService {
       throw new NotFoundException();
     }
 
-    return this._mapperService.mapCollection<User, UserDTO>(
-      users,
-      new UserDTO(),
-    );
+    return users;
   }
   public async getUserAge(user: User) {
     const today = new Date();
@@ -61,13 +56,13 @@ export class UserService {
     return age;
   }
 
-  public async create(user: User): Promise<UserDTO> {
+  public async create(user: User): Promise<User> {
     const repo = await getConnection().getRepository(Role);
     const defaultRole = await repo.findOne({ where: { name: 'ADULT' } });
     user.roles = [defaultRole];
 
     const savedUser = await this._userRepository.save(user);
-    return this._mapperService.map<User, UserDTO>(savedUser, new UserDTO());
+    return savedUser;
   }
 
   public async update(id: number, user: User): Promise<void> {
