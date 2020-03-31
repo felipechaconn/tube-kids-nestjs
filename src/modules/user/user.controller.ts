@@ -7,12 +7,16 @@ import {
   Patch,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { getCustomRepository } from 'typeorm';
 import { User } from './user.entity';
 import { UserDTO } from './dto/user.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+//El gard es un middlaware 
+@UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UserController {
   constructor(private readonly _userService: UserService) {}
@@ -27,12 +31,6 @@ export class UserController {
   async getUsers(): Promise<User[]> {
     const users = await this._userService.getAll();
     return users;
-  }
-
-  @Post('createUser')
-  async createUser(@Body() user: User): Promise<User> {
-    const createdUser = await this._userService.create(user);
-    return createdUser;
   }
 
   @Patch(':id')

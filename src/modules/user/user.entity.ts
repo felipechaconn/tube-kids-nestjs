@@ -46,13 +46,5 @@ export class User extends BaseEntity {
   )
   @JoinTable({ name: 'user_roles' })
   roles: Role[];
-
-  @BeforeInsert()
-  async hashPassword() {
-    return this.password_user = await bcrypt.hash(this.password_user, 10);
-  }
-
-  async comparePassword(attempt: string): Promise<boolean | User> {
-    return await bcrypt.compare(attempt, this.password_user);
-  }
+  
 }

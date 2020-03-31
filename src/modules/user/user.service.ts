@@ -45,26 +45,7 @@ export class UserService {
 
     return users;
   }
-  public async getUserAge(user: User) {
-    const today = new Date();
-    const userAge = user.birthday_user;
-    let age = today.getFullYear() - userAge.getFullYear();
-    const months = today.getMonth() - userAge.getMonth();
-    if (months < 0 || (months === 0 && today.getDate() < userAge.getDate())) {
-      age--;
-    }
-    return age;
-  }
-
-  public async create(user: User): Promise<User> {
-    const repo = await getConnection().getRepository(Role);
-    const defaultRole = await repo.findOne({ where: { name: 'ADULT' } });
-    user.roles = [defaultRole];
-
-    const savedUser = await this._userRepository.save(user);
-    return savedUser;
-  }
-
+ 
   public async update(id: number, user: User): Promise<void> {
     await this._userRepository.update(id, user);
   }
