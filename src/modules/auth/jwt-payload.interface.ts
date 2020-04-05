@@ -1,8 +1,8 @@
 import { RoleType } from "../role/roletype.enum.";
 
 export interface IJwtPayload {
-    id_user: number;
-    email_user: string;
+    email: string;
+    firstName: string;
     //roles: RoleType[];
     iat?:Date;
 

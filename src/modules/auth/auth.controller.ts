@@ -13,7 +13,7 @@ constructor(private readonly _authService: AuthService) {
     @Post('/signup')
     @UsePipes(ValidationPipe)
     @Header('Cache-Control', 'none')
-    async signup(@Body() signupDto: SignupDto): Promise<void> {
+    async signup(@Body() signupDto: SignupDto){
         return this._authService.signup(signupDto);
     }
 

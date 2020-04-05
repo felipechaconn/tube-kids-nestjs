@@ -27,11 +27,7 @@ export class AuthService {
     @InjectRepository(AuthRepository)
     private readonly _authRepository: AuthRepository,
     private readonly _jwtService: JwtService,
-   
-    
-  ) {
-    
-  }
+  ) {}
   public async getUserAge(date: Date) {
     const today = new Date();
     let userAgeDate = new Date(date);
@@ -54,8 +50,35 @@ export class AuthService {
     }
   }
 
-  async signup(signupDto: SignupDto): Promise<void> {
-    const { email_user, birthday_user } = signupDto;
+  public async sendMail(emailTo: string, tokenVerfiy: string) {
+    //email
+    const sgMail = require('@sendgrid/mail');
+    //Este es el api de SENDGRID
+    const ApiKey = this._configService.get(Configuration.SENDGRID_API_KEY);
+    sgMail.setApiKey(ApiKey);
+    const route = `http://localhost:4200/?${tokenVerfiy}`;
+    const msg = {
+      to: emailTo,
+      from: 'noreply@gmail.com',
+      subject: 'Verification Account',
+      text: `Click on this link to verify your email`,
+      html: `<a href=http://localhost:4200/verification/?token=${tokenVerfiy} >Thanks for all, click to confirm your account</a>`,
+    };
+    sgMail.send(msg).then(
+      () => {},
+      (error) => {
+        console.error(error);
+        if (error.response) {
+          console.error(error.response.body);
+        }
+      },
+    );
+  }
+
+  async signup(signupDto: SignupDto): Promise<{ JwtToken: string }> {
+    debugger;
+
+    const { email_user, birthday_user, firstName_user } = signupDto;
     const userExists = await this._authRepository.findOne({
       where: [{ email_user }],
     });
@@ -63,32 +86,26 @@ export class AuthService {
     if (userExists) {
       throw new ConflictException('User already exists');
     } else if ((await this.getUserAge(signupDto.birthday_user)) >= 18) {
-    const token = uid(12);
-     //email
-    const sgMail = require('@sendgrid/mail');
-    const ApiKey= this._configService.get(Configuration.SENDGRID_API_KEY);
-    sgMail.setApiKey(ApiKey);
-    console.log(ApiKey);
-    const route = `http://localhost:4200/?${token}`;
-    const msg ={
-          to: email_user ,
-          from: "noreply@gmail.com",
-          subject: "Verification Account",
-          text: `Click on this link to verify your email`,
-          html: `<a href=http://localhost:4200/verification/?token=${token} >Thanks for all, click to confirm your account</a>`
-    };
-    sgMail.send(msg).then(()=>{}, error => {
-      console.error(error);
-      if (error.response) {
-        console.error(error.response.body)
-      }
-    });
-      return this._authRepository.signup(signupDto,token);
+      const token = uid(12);
+      //Sending mail
+      
+      this.sendMail(email_user, token);
+
+      const payload: IJwtPayload = {
+        firstName: firstName_user,
+        email: email_user,
+        // roles: user.roles.map((r) => r.description as RoleType),
+      };
+
+      const JwtToken = await this._jwtService.sign(payload);
+      console.log('JSON web token:', JwtToken);
+      this._authRepository.signup(signupDto, token);
+      return { JwtToken };
     }
     throw new BadRequestException('Tell your parent to open the account');
   }
 
-  async signin(signinDto: SigninDto): Promise<{ token: string }> {
+  async signin(signinDto: SigninDto): Promise<{ tokenJwt: string }> {
     const { email_user, password_user } = signinDto;
     const user: User = await this._authRepository.findOne({
       where: { email_user },
@@ -104,21 +121,13 @@ export class AuthService {
     }
 
     const payload: IJwtPayload = {
-      id_user: user.id_user,
-      email_user: user.email_user,
+      firstName: user.firstName_user,
+      email: user.email_user,
       // roles: user.roles.map((r) => r.description as RoleType),
     };
 
-
-    debugger;
-    const token = await this._jwtService.sign(payload);
-    console.log('token',token);
-    return { token };
-
-
-
-
- 
-    
+    const tokenJwt = await this._jwtService.sign(payload);
+    console.log('JSON web token:', tokenJwt);
+    return { tokenJwt };
   }
 }
