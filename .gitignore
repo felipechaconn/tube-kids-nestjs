@@ -35,4 +35,4 @@ lerna-debug.log*
 
 #credentials
 
-.ormconfig.json
+.ormconfig.json"sendgrid.env" 

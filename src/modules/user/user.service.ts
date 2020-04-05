@@ -45,7 +45,7 @@ export class UserService {
 
     return users;
   }
- 
+
   public async update(id: number, user: User): Promise<void> {
     await this._userRepository.update(id, user);
   }
@@ -59,5 +59,27 @@ export class UserService {
       throw new NotFoundException();
     }
     await this._userRepository.update(id, { status: 'INACTIVE' });
+  }
+
+  public async activateUser(token: string):Promise<Boolean> {
+    console.log(token);
+    const userExists: User = await this._userRepository.findOne({
+      where: { vcode: token },
+    });
+
+    console.log("user",userExists.status );
+    
+    if (!userExists) {
+      throw new NotFoundException('You already authorized');
+    }
+    try {
+    await this._userRepository.update( userExists,{ status: 'ACTIVE' });
+    await this._userRepository.update(userExists, {vcode: null});
+    return true;
+    } catch(e) {
+      console.log(e);
+      return false;
+    }
+   
   }
 }

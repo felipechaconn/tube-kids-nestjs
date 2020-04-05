@@ -34,8 +34,12 @@ export class User extends BaseEntity {
   @Column()
   phone_user: string;
 
-  @Column({ type: 'varchar', default: 'ACTIVE', length: 8 })
+  @Column({ type: 'varchar', default: 'INACTIVE', length: 8 })
   status: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  vcode: string;
+
 
   @Column()
   password_user: string;

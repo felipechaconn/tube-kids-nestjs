@@ -13,13 +13,25 @@ import { User } from '../user/user.entity';
 import { compare } from 'bcrypt';
 import { IJwtPayload } from './jwt-payload.interface';
 import { RoleType } from '../role/roletype.enum.';
+import { LocalStorage } from 'node-localstorage';
+import { from } from 'rxjs';
+import { uid } from 'rand-token';
+import { ConfigService } from 'src/config/config.service';
+import { config } from 'dotenv/types';
+import { Configuration } from 'src/config/config.keys';
+
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly _configService: ConfigService,
     @InjectRepository(AuthRepository)
     private readonly _authRepository: AuthRepository,
     private readonly _jwtService: JwtService,
-  ) {}
+   
+    
+  ) {
+    
+  }
   public async getUserAge(date: Date) {
     const today = new Date();
     let userAgeDate = new Date(date);
@@ -51,7 +63,27 @@ export class AuthService {
     if (userExists) {
       throw new ConflictException('User already exists');
     } else if ((await this.getUserAge(signupDto.birthday_user)) >= 18) {
-      return this._authRepository.signup(signupDto);
+    const token = uid(12);
+     //email
+    const sgMail = require('@sendgrid/mail');
+    const ApiKey= this._configService.get(Configuration.SENDGRID_API_KEY);
+    sgMail.setApiKey(ApiKey);
+    console.log(ApiKey);
+    const route = `http://localhost:4200/?${token}`;
+    const msg ={
+          to: email_user ,
+          from: "noreply@gmail.com",
+          subject: "Verification Account",
+          text: `Click on this link to verify your email`,
+          html: `<a href=http://localhost:4200/verification/?token=${token} >Thanks for all, click to confirm your account</a>`
+    };
+    sgMail.send(msg).then(()=>{}, error => {
+      console.error(error);
+      if (error.response) {
+        console.error(error.response.body)
+      }
+    });
+      return this._authRepository.signup(signupDto,token);
     }
     throw new BadRequestException('Tell your parent to open the account');
   }
@@ -74,10 +106,19 @@ export class AuthService {
     const payload: IJwtPayload = {
       id_user: user.id_user,
       email_user: user.email_user,
-     // roles: user.roles.map((r) => r.description as RoleType),
+      // roles: user.roles.map((r) => r.description as RoleType),
     };
-    console.log(RoleType);
+
+
+    debugger;
     const token = await this._jwtService.sign(payload);
+    console.log('token',token);
     return { token };
+
+
+
+
+ 
+    
   }
 }

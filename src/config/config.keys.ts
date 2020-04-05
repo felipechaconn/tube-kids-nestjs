@@ -5,4 +5,5 @@ export enum Configuration {
   PASSWORD = 'PASSWORD',
   DATABASE = 'DATABASE',
   JWT_SECRET = 'JWT_SECRET',
+  SENDGRID_API_KEY ='SENDGRID_API_KEY'
 }
