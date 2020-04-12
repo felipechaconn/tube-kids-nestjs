@@ -12,13 +12,14 @@ import { SigninDto, SignupDto } from './dto';
 import { User } from '../user/user.entity';
 import { compare } from 'bcrypt';
 import { IJwtPayload } from './jwt-payload.interface';
-import { RoleType } from '../role/roletype.enum.';
+import { RoleType } from '../role/roletype.enum';
 import { LocalStorage } from 'node-localstorage';
 import { from } from 'rxjs';
 import { uid } from 'rand-token';
 import { ConfigService } from 'src/config/config.service';
 import { config } from 'dotenv/types';
 import { Configuration } from 'src/config/config.keys';
+import { throws } from 'assert';
 
 @Injectable()
 export class AuthService {
@@ -42,8 +43,8 @@ export class AuthService {
     return age;
   }
 
-  public async getNameRolByAge(user: User) {
-    if ((await this.getUserAge(user.birthday_user)) >= 18) {
+  public async getRolByAge(age:number) {
+    if (age >= 18) {
       return RoleType.ADULT;
     } else {
       return RoleType.KID;
@@ -78,23 +79,26 @@ export class AuthService {
   async signup(signupDto: SignupDto): Promise<{ JwtToken: string }> {
     debugger;
 
-    const { email_user, birthday_user, firstName_user } = signupDto;
+    const { email_user, birthday_user, firstName_user} = signupDto;
     const userExists = await this._authRepository.findOne({
       where: [{ email_user }],
     });
 
     if (userExists) {
       throw new ConflictException('User already exists');
-    } else if ((await this.getUserAge(signupDto.birthday_user)) >= 18) {
+    }else if (userExists != undefined){
+       if (userExists.status  === 'INACTIVE'){
+      throw new ConflictException('You would need to activate your account')
+       }
+    } else if ((await this.getUserAge(birthday_user)>= 18)) {
       const token = uid(12);
       //Sending mail
-      
       this.sendMail(email_user, token);
 
       const payload: IJwtPayload = {
         firstName: firstName_user,
         email: email_user,
-        // roles: user.roles.map((r) => r.description as RoleType),
+        role: RoleType.ADULT
       };
 
       const JwtToken = await this._jwtService.sign(payload);
@@ -105,7 +109,7 @@ export class AuthService {
     throw new BadRequestException('Tell your parent to open the account');
   }
 
-  async signin(signinDto: SigninDto): Promise<{ tokenJwt: string }> {
+  async signin(signinDto: SigninDto): Promise<{ JwtToken: string }> {
     const { email_user, password_user } = signinDto;
     const user: User = await this._authRepository.findOne({
       where: { email_user },
@@ -123,11 +127,11 @@ export class AuthService {
     const payload: IJwtPayload = {
       firstName: user.firstName_user,
       email: user.email_user,
-      // roles: user.roles.map((r) => r.description as RoleType),
+      role: RoleType.ADULT
     };
 
-    const tokenJwt = await this._jwtService.sign(payload);
-    console.log('JSON web token:', tokenJwt);
-    return { tokenJwt };
+    const JwtToken = await this._jwtService.sign(payload);
+    console.log('JSON web token:', JwtToken);
+    return { JwtToken };
   }
 }

@@ -3,7 +3,7 @@ import { User } from '../user/user.entity';
 import { SignupDto } from './dto';
 import { RoleRepository } from '../role/role.repository';
 import { Role } from '../role/role.entity';
-import { RoleType } from '../role/roletype.enum.';
+import { RoleType } from '../role/roletype.enum';
 import { genSalt, hash } from 'bcrypt';
 
 
@@ -34,7 +34,7 @@ export class AuthRepository extends Repository<User> {
       where: { name: RoleType.ADULT },
     });
     
-    user.roles = [defaultRole];
+    user.roles = defaultRole;
 
     await user.save();
   }

@@ -7,9 +7,14 @@ import {
   ManyToMany,
   JoinTable,
   JoinColumn,
+  OneToMany,
+  OneToOne,
+  ManyToOne,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../../modules/role/role.entity';
+import { type } from 'os';
+import { Video } from '../video/video.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -44,11 +49,20 @@ export class User extends BaseEntity {
   @Column()
   password_user: string;
 
-  @ManyToMany(
+
+  @OneToMany(type => Video,video => video.creator)
+  videos: Video[];
+  
+
+
+  @ManyToOne(
     type => Role,
     role => role.users,
+    {cascade:true,
+      eager:true}
+
   )
-  @JoinTable({ name: 'user_roles' })
-  roles: Role[];
+  @JoinColumn({ name: 'user_rol' })
+  roles: Role;
   
 }
