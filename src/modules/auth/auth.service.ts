@@ -20,6 +20,7 @@ import { ConfigService } from 'src/config/config.service';
 import { config } from 'dotenv/types';
 import { Configuration } from 'src/config/config.keys';
 import { throws } from 'assert';
+import { ReadUserDto } from '../user/dto';
 
 @Injectable()
 export class AuthService {
@@ -77,7 +78,7 @@ export class AuthService {
   }
 
   async signup(signupDto: SignupDto): Promise<{ JwtToken: string }> {
-    debugger;
+    ;
 
     const { email_user, birthday_user, firstName_user} = signupDto;
     const userExists = await this._authRepository.findOne({
@@ -109,15 +110,16 @@ export class AuthService {
     throw new BadRequestException('Tell your parent to open the account');
   }
 
-  async signin(signinDto: SigninDto): Promise<{ JwtToken: string }> {
+  async signin(signinDto: SigninDto): Promise<{ JwtToken: string, userId: number }> {
     const { email_user, password_user } = signinDto;
     const user: User = await this._authRepository.findOne({
       where: { email_user },
     });
-
+  
     if (!user) {
       throw new NotFoundException('User doesnt exists');
     }
+    const userId = user.id_user;
     const isMatch = await compare(password_user, user.password_user);
 
     if (!isMatch) {
@@ -129,9 +131,9 @@ export class AuthService {
       email: user.email_user,
       role: RoleType.ADULT
     };
-
+    
     const JwtToken = await this._jwtService.sign(payload);
     console.log('JSON web token:', JwtToken);
-    return { JwtToken };
+    return { JwtToken, userId };
   }
 }

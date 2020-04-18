@@ -11,9 +11,6 @@ import { ReadVideoDto, CreateVideoDto, UpdateVideoDto } from './dto';
 import { plainToClass } from 'class-transformer';
 import { Video } from './video.entity';
 import { In } from 'typeorm';
-import { User } from '../user/user.entity';
-import { Role } from '../role/role.entity';
-import { RoleType } from '../role/roletype.enum';
 
 @Injectable()
 export class VideoService {
@@ -46,15 +43,14 @@ export class VideoService {
     return videos.map((video) => plainToClass(ReadVideoDto, video));
   }
 
-  async create(video: Partial<CreateVideoDto>, creatorId: number) {
-    const creator = await this._userRepository.findOne(creatorId,{
-      where: { status: 'ACTIVE'}
+  async create(video: Partial<CreateVideoDto>) {
+    const creator = await this._userRepository.findOne(video.creator.id_user, {
+      where: { status: 'ACTIVE' },
     });
 
-    if(!creator) {
+    if (!creator) {
       throw new NotFoundException('User not found');
     }
-    console.log(creator);
     // const isAdult = creator.roles.some(
     //   (role: Role) => role.name === RoleType.ADULT,
     // );
@@ -62,32 +58,33 @@ export class VideoService {
     // if (!isAdult) {
     //   throw new UnauthorizedException('You wiuld need to be Adult');
     // }
-    
+
     const savedVideo: Video = await this._videoRepository.save({
       name_video: video.name_video,
       description_video: video.description_video,
       link_video: video.link_video,
       creator,
     });
-    return plainToClass(ReadVideoDto, savedVideo);
+    console.log('these is creator ID', creator.id_user);
+    //return plainToClass(ReadVideoDto, savedVideo);
   }
 
   async update(
     videoId: number,
     updateDTO: Partial<UpdateVideoDto>,
-    creatorId: number,
-  ): Promise<ReadVideoDto> {
+  ): Promise<void> {
     const videoExists = await this._videoRepository.findOne(videoId);
-
     if (!videoExists) {
       throw new NotFoundException('These video doesnt exists');
     }
-    const isOwnVideo = videoExists.creator.id_user === creatorId;
+    console.log('Este es el id del usuario',updateDTO.creator.id_user);
+    const isOwnVideo = videoExists.creator.id_user ===  updateDTO.creator.id_user;
     if (!isOwnVideo) {
       throw new UnauthorizedException('This user isnt the video creator');
     }
-    const updatedVideo = await this._videoRepository.update(videoId, updateDTO);
-    return plainToClass(ReadVideoDto, updatedVideo);
+   // delete updateDTO.creator;
+   // const updatedVideo = await this._videoRepository.update(videoId, updateDTO);
+    return console.log('No revienta')//plainToClass(ReadVideoDto, updatedVideo);
   }
 
   async delete(videoId: number): Promise<void> {

@@ -1,4 +1,5 @@
 import  {IsString, IsNotEmpty} from 'class-validator';
+import { User } from 'src/modules/user/user.entity';
 
 export class UpdateVideoDto {
     @IsString()
@@ -9,4 +10,6 @@ export class UpdateVideoDto {
 
     @IsString()
     readonly link_video: string;
+
+     creator? : User;
 }

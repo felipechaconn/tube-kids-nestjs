@@ -1,6 +1,7 @@
 import  {IsString, IsNotEmpty, IsNumber} from 'class-validator';
 import { Exclude,Expose,Type} from 'class-transformer';
 import { UserDTO } from 'src/modules/user/dto/user.dto';
+import { ReadUserDto } from 'src/modules/user/dto';
 
 @Exclude()
 export class ReadVideoDto {
@@ -21,6 +22,6 @@ export class ReadVideoDto {
     readonly link_video: string;
 
     @Expose()
-    @Type(type => UserDTO)
-    readonly creator: UserDTO;
+    @Type(type => ReadUserDto)
+    readonly creator: ReadUserDto;
 }

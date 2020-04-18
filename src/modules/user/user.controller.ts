@@ -14,6 +14,7 @@ import { getCustomRepository } from 'typeorm';
 import { User } from './user.entity';
 import { UserDTO } from './dto/user.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ReadUserDto, UpdateUserDto } from './dto';
 
 //El gard es un middlaware 
 
@@ -21,28 +22,37 @@ import { AuthGuard } from '@nestjs/passport';
 export class UserController {
   constructor(private readonly _userService: UserService) {}
 
+
   @UseGuards(AuthGuard('jwt'))
-  @Get(':id')
-  async getUser(@Param('id',ParseIntPipe) id: number): Promise<User> {
-    const user = await this._userService.getOne(id);
-    return user;
+  @Get('emailUser/:userEmail')
+  getUserIdByEmail(@Param('userEmail') userEmail: string): Promise<ReadUserDto> {
+    return  this._userService.getIdByEmail(userEmail);
+   
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('dataUser/:userId')
+  getUser(@Param('userId',ParseIntPipe) userId: number): Promise<ReadUserDto> {
+    return  this._userService.getOne(userId);
+   
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  async getUsers(): Promise<User[]> {
-    const users = await this._userService.getAll();
-    return users;
+  getUsers(): Promise<ReadUserDto[]> {
+    return this._userService.getAll();
+   
   }
   @UseGuards(AuthGuard('jwt'))
-  @Patch(':id')
+  @Patch(':userId')
   async updateUser(
-    @Param('id',ParseIntPipe) id: number,
-    @Body() user: User,
-  ): Promise<User | void> {
-    const updatedUser = await this._userService.update(id, user);
-    return updatedUser;
+    @Param('userId',ParseIntPipe) userId: number,
+    @Body() user: UpdateUserDto,
+  ) {
+    return this._userService.update(userId, user);
   }
+
+  
   @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   async deleteUser(@Param('id',ParseIntPipe) id: number) {
