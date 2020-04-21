@@ -51,13 +51,7 @@ export class VideoService {
     if (!creator) {
       throw new NotFoundException('User not found');
     }
-    // const isAdult = creator.roles.some(
-    //   (role: Role) => role.name === RoleType.ADULT,
-    // );
 
-    // if (!isAdult) {
-    //   throw new UnauthorizedException('You wiuld need to be Adult');
-    // }
 
     const savedVideo: Video = await this._videoRepository.save({
       name_video: video.name_video,
@@ -66,13 +60,13 @@ export class VideoService {
       creator,
     });
     console.log('these is creator ID', creator.id_user);
-    //return plainToClass(ReadVideoDto, savedVideo);
+    return plainToClass(ReadVideoDto, savedVideo);
   }
 
   async update(
     videoId: number,
     updateDTO: Partial<UpdateVideoDto>,
-  ): Promise<void> {
+  ): Promise<ReadVideoDto> {
     const videoExists = await this._videoRepository.findOne(videoId);
     if (!videoExists) {
       throw new NotFoundException('These video doesnt exists');
@@ -82,9 +76,8 @@ export class VideoService {
     if (!isOwnVideo) {
       throw new UnauthorizedException('This user isnt the video creator');
     }
-   // delete updateDTO.creator;
-   // const updatedVideo = await this._videoRepository.update(videoId, updateDTO);
-    return console.log('No revienta')//plainToClass(ReadVideoDto, updatedVideo);
+   const updatedVideo = await this._videoRepository.update(videoId, updateDTO);
+    return plainToClass(ReadVideoDto, updatedVideo);
   }
 
   async delete(videoId: number): Promise<void> {

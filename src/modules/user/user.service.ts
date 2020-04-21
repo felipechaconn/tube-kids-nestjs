@@ -91,7 +91,7 @@ export class UserService {
       throw new NotFoundException('You already authorized');
     }
     try {
-      
+      debugger
     await this._userRepository.update( userExists,{ status: 'ACTIVE' });
     
     return userExists;

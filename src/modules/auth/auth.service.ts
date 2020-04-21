@@ -12,7 +12,6 @@ import { SigninDto, SignupDto } from './dto';
 import { User } from '../user/user.entity';
 import { compare } from 'bcrypt';
 import { IJwtPayload } from './jwt-payload.interface';
-import { RoleType } from '../role/roletype.enum';
 import { LocalStorage } from 'node-localstorage';
 import { from } from 'rxjs';
 import { uid } from 'rand-token';
@@ -44,14 +43,6 @@ export class AuthService {
     return age;
   }
 
-  public async getRolByAge(age:number) {
-    if (age >= 18) {
-      return RoleType.ADULT;
-    } else {
-      return RoleType.KID;
-    }
-  }
-
   public async sendMail(emailTo: string, tokenVerfiy: string) {
     //email
     const sgMail = require('@sendgrid/mail');
@@ -78,7 +69,7 @@ export class AuthService {
   }
 
   async signup(signupDto: SignupDto): Promise<{ JwtToken: string }> {
-    ;
+
 
     const { email_user, birthday_user, firstName_user} = signupDto;
     const userExists = await this._authRepository.findOne({
@@ -99,7 +90,6 @@ export class AuthService {
       const payload: IJwtPayload = {
         firstName: firstName_user,
         email: email_user,
-        role: RoleType.ADULT
       };
 
       const JwtToken = await this._jwtService.sign(payload);
@@ -128,8 +118,7 @@ export class AuthService {
 
     const payload: IJwtPayload = {
       firstName: user.firstName_user,
-      email: user.email_user,
-      role: RoleType.ADULT
+      email: user.email_user
     };
     
     const JwtToken = await this._jwtService.sign(payload);

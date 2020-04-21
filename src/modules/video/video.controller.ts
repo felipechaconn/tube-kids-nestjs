@@ -12,27 +12,27 @@ import {
 import { VideoService } from './video.service';
 import { ReadVideoDto, CreateVideoDto,UpdateVideoDto } from './dto';
 import { GetUser } from '../auth/user.decorator';
-import { Role } from '../role/decorators/role.decorator';
 import { AuthGuard } from '@nestjs/passport';
-import { RoleGuard } from '../role/guards/role.guard';
 
 @Controller('video')
 export class VideoController {
   constructor(private readonly _videoService: VideoService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Get(':idVideo')
   getVideo(@Param('idVideo', ParseIntPipe) id: number): Promise<ReadVideoDto> {
     return this._videoService.get(id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('myvideo/:ownerId')
   getVideoByOwner(
     @Param('ownerId', ParseIntPipe) ownerId: number,
   ): Promise<ReadVideoDto[]> {
-    console.log(ownerId);
     return this._videoService.getVideoByCreator(ownerId);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   createVideo(
     @Body() video: Partial<CreateVideoDto>
@@ -43,7 +43,7 @@ export class VideoController {
 
   @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+  async deleteVideo(@Param('id', ParseIntPipe) id: number) {
     await this._videoService.delete(id);
     return true;
   }
@@ -54,7 +54,6 @@ export class VideoController {
     @Param('videoId',ParseIntPipe) videoId: number,
     @Body() videoUpdate: UpdateVideoDto,
   ) {
-    console.log('Este es el body',videoUpdate);
    return this._videoService.update(videoId,videoUpdate);
   }
 }

@@ -12,9 +12,9 @@ import {
   ManyToOne,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Role } from '../../modules/role/role.entity';
 import { type } from 'os';
 import { Video } from '../video/video.entity';
+import { Kid } from '../kid/kid.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -52,17 +52,11 @@ export class User extends BaseEntity {
 
   @OneToMany(type => Video,video => video.creator)
   videos: Video[];
-  
 
 
-  @ManyToOne(
-    type => Role,
-    role => role.users,
-    {cascade:true,
-      eager:true}
 
-  )
-  @JoinColumn({ name: 'user_rol' })
-  roles: Role;
+  @OneToMany(type => Kid,kid => kid.creator)
+  kids: Kid[];
+
   
 }

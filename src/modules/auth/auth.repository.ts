@@ -1,9 +1,6 @@
 import { Repository, Entity, EntityRepository, getConnection } from 'typeorm';
 import { User } from '../user/user.entity';
 import { SignupDto } from './dto';
-import { RoleRepository } from '../role/role.repository';
-import { Role } from '../role/role.entity';
-import { RoleType } from '../role/roletype.enum';
 import { genSalt, hash } from 'bcrypt';
 
 
@@ -29,12 +26,7 @@ export class AuthRepository extends Repository<User> {
     console.log('token',token)
     const salt = await genSalt(10);
     user.password_user = await hash(password_user, salt);
-    const roleRepository: RoleRepository = getConnection().getRepository(Role);
-    const defaultRole: Role = await roleRepository.findOne({
-      where: { name: RoleType.ADULT },
-    });
     
-    user.roles = defaultRole;
 
     await user.save();
   }
