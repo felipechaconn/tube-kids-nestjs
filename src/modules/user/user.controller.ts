@@ -30,7 +30,6 @@ export class UserController {
    
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('dataUser/:userId')
   getUser(@Param('userId',ParseIntPipe) userId: number): Promise<ReadUserDto> {
     return  this._userService.getOne(userId);
@@ -64,4 +63,5 @@ export class UserController {
   async findUserToken(@Param('token') token: string){
     await this._userService.activateUser(token);
   }
+
 }

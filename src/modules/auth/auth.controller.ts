@@ -23,4 +23,10 @@ constructor(private readonly _authService: AuthService) {
         return this._authService.signin(signinDto);
 
     }
+
+    @Post('/verification/:userId')
+    async twofactorAuth( @Param('userId',ParseIntPipe) userId: number,
+    @Body('code_verify') tokenVerify: string){
+        return this._authService.twoFactorAuth(tokenVerify,userId);
+    }
 }

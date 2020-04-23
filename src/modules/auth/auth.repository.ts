@@ -15,6 +15,7 @@ export class AuthRepository extends Repository<User> {
       lastName_user,
       birthday_user,
       password_user,
+      phone_user,
     } = signupDto;
 
     const user = new User();
@@ -22,6 +23,7 @@ export class AuthRepository extends Repository<User> {
     user.firstName_user = firstName_user;
     user.lastName_user = lastName_user;
     user.birthday_user = birthday_user;
+    user.phone_user = phone_user;
     user.vcode = token;
     console.log('token',token)
     const salt = await genSalt(10);

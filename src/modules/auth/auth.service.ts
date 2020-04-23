@@ -17,10 +17,11 @@ import { from } from 'rxjs';
 import { uid } from 'rand-token';
 import { ConfigService } from 'src/config/config.service';
 import { config } from 'dotenv/types';
+import { totp } from 'otplib';
 import { Configuration } from 'src/config/config.keys';
 import { throws } from 'assert';
 import { ReadUserDto } from '../user/dto';
-
+import { SigninKidDto } from './dto/signinKid.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -69,20 +70,18 @@ export class AuthService {
   }
 
   async signup(signupDto: SignupDto): Promise<{ JwtToken: string }> {
-
-
-    const { email_user, birthday_user, firstName_user} = signupDto;
+    const { email_user, birthday_user, firstName_user, phone_user } = signupDto;
     const userExists = await this._authRepository.findOne({
       where: [{ email_user }],
     });
 
     if (userExists) {
       throw new ConflictException('User already exists');
-    }else if (userExists != undefined){
-       if (userExists.status  === 'INACTIVE'){
-      throw new ConflictException('You would need to activate your account')
-       }
-    } else if ((await this.getUserAge(birthday_user)>= 18)) {
+    } else if (userExists != undefined) {
+      if (userExists.status === 'INACTIVE') {
+        throw new ConflictException('You would need to activate your account');
+      }
+    } else if ((await this.getUserAge(birthday_user)) >= 18) {
       const token = uid(12);
       //Sending mail
       this.sendMail(email_user, token);
@@ -90,6 +89,7 @@ export class AuthService {
       const payload: IJwtPayload = {
         firstName: firstName_user,
         email: email_user,
+        phoneUser: phone_user,
       };
 
       const JwtToken = await this._jwtService.sign(payload);
@@ -100,12 +100,30 @@ export class AuthService {
     throw new BadRequestException('Tell your parent to open the account');
   }
 
-  async signin(signinDto: SigninDto): Promise<{ JwtToken: string, userId: number }> {
+  async loginKidsAndAdults(signinDto: SigninDto, signinKid: SigninKidDto) {
+    const { email_user, password_user } = signinDto;
+  }
+  //Este metodo es para uso del otplib genera el token que sera enviado por mensaje
+  public createCodeTFA(tokenVerfiy: string) {
+    if (!tokenVerfiy) {
+      throw new NotFoundException('Need to send code');
+    }
+  totp.options = {
+      step: 80,
+      window: 1
+    };
+    const tokenEncrypt: string = totp.generate(tokenVerfiy);
+    console.log(' Mini token Generado',tokenEncrypt);
+    console.log('token de verificacion',tokenVerfiy);
+    return tokenEncrypt;
+  }
+
+  async signin(signinDto: SigninDto): Promise<{ userId: number }> {
     const { email_user, password_user } = signinDto;
     const user: User = await this._authRepository.findOne({
       where: { email_user },
     });
-  
+
     if (!user) {
       throw new NotFoundException('User doesnt exists');
     }
@@ -115,14 +133,64 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException('Invalid password');
     }
+    const tokenValidate = this.createCodeTFA(user.vcode);
+    this.sentSMSVerification(tokenValidate, user.phone_user);
 
-    const payload: IJwtPayload = {
-      firstName: user.firstName_user,
-      email: user.email_user
-    };
-    
-    const JwtToken = await this._jwtService.sign(payload);
-    console.log('JSON web token:', JwtToken);
-    return { JwtToken, userId };
+    return { userId };
+  }
+
+  async twoFactorAuth(token: string, idUser: number | string): Promise<{ JwtToken: string }> {
+    const user: User = await this._authRepository.findOne(idUser,{
+      where: {status: 'ACTIVE'},
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    try {
+      const secret = user.vcode;
+      console.log('Esto es lo que vamos a verificar',token,secret);
+      const verifyTokens = totp.verify({secret:secret, token:token});
+      console.log(verifyTokens)
+      const isValid: boolean = verifyTokens;
+
+      console.log(isValid);
+      if (!isValid) {
+        throw new UnauthorizedException(
+          'Incorrect Code check the correct code',
+        );
+      }
+      const payload: IJwtPayload = {
+        firstName: user.firstName_user,
+        email: user.email_user,
+        phoneUser: user.phone_user,
+      };
+
+      const JwtToken = await this._jwtService.sign(payload);
+      console.log('JSON web token:', JwtToken);
+      return { JwtToken };
+    } catch (err) {
+      // Possible errors
+      // - options validation
+      // - "Invalid input - it is not base32 encoded string" (if thiry-two is used)
+      console.error(err);
+    }
+  }
+
+  //Este metodo envia el mensaje
+  async sentSMSVerification(tokenValidate: any, phone_user: string | number) {
+    //Este es el api de Twilio
+    const ApiSID = this._configService.get(Configuration.TWILIO_SID);
+    //Este es el key de Twilio
+    const ApiKey = this._configService.get(Configuration.TWILIO_TOKEN);
+    const client = require('twilio')(ApiSID, ApiKey);
+
+    return client.messages
+      .create({
+        body: `this is your verification code: ${tokenValidate}`,
+        from: '+12058392916',
+        to: phone_user,
+      })
+      .then((message) => console.log(message.sid));
   }
 }

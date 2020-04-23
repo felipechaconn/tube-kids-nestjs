@@ -20,4 +20,8 @@ export class SignupDto {
   @IsNotEmpty()
   @IsString()
   lastName_user: string;
+
+  @IsNotEmpty()
+  @IsString()
+  phone_user: string;
 }
