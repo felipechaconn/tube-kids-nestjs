@@ -22,12 +22,16 @@ import { Configuration } from 'src/config/config.keys';
 import { throws } from 'assert';
 import { ReadUserDto } from '../user/dto';
 import { SigninKidDto } from './dto/signinKid.dto';
+import { Kid } from '../kid/kid.entity';
+import { KidRepository } from '../kid/kid.repository';
+import { IJwtKidPayload } from './jwtKid-payload.interface';
 @Injectable()
 export class AuthService {
   constructor(
     private readonly _configService: ConfigService,
     @InjectRepository(AuthRepository)
     private readonly _authRepository: AuthRepository,
+    private readonly _kidRepository: KidRepository,
     private readonly _jwtService: JwtService,
   ) {}
   public async getUserAge(date: Date) {
@@ -100,9 +104,34 @@ export class AuthService {
     throw new BadRequestException('Tell your parent to open the account');
   }
 
-  async loginKidsAndAdults(signinDto: SigninDto, signinKid: SigninKidDto) {
-    const { email_user, password_user } = signinDto;
+  async signinKid(signinKid: SigninKidDto): Promise<{ JwtToken: string , kidId: number}> {
+    const { username_kid, pin_kid } = signinKid;
+    const kid: Kid = await this._kidRepository.findOne({
+      where: { username_kid },
+    });
+    
+    if(!kid) {
+      throw new NotFoundException('Kid  doesnt exists');
+    }
+    const kidId = kid.id_kid;
+    const isMatch = (pin_kid === kid.pin_kid);
+  console.log(pin_kid,kid.pin_kid);
+    if(!isMatch){
+      throw new UnauthorizedException('Your pin is incorrect');
+    }
+
+    const payload: IJwtKidPayload = {
+      idKid: kid.id_kid,
+      username: kid.username_kid,
+    };
+
+    const JwtToken = await this._jwtService.sign(payload);
+    console.log('JSON web token:', JwtToken);
+    return { JwtToken,kidId };
   }
+
+
+
   //Este metodo es para uso del otplib genera el token que sera enviado por mensaje
   public createCodeTFA(tokenVerfiy: string) {
     if (!tokenVerfiy) {

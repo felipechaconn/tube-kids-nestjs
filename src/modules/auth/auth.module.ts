@@ -9,9 +9,11 @@ import { PassportModule } from '@nestjs/passport';
 import {JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '../../config/config.module';
 import { Configuration } from '../../config/config.keys';
+import { KidRepository } from '../kid/kid.repository';
+import { JwtKidStrategy } from './strategies/jwtKid.strategy';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AuthRepository]),
+    TypeOrmModule.forFeature([AuthRepository,KidRepository]),
     PassportModule.register({
       defaultStrategy: 'jwt',
     }),
@@ -30,6 +32,6 @@ import { Configuration } from '../../config/config.keys';
   ],
   controllers: [AuthController],
   providers: [AuthService, ConfigService, JwtStrategy],
-  exports: [JwtStrategy, PassportModule],
+  exports: [JwtStrategy,PassportModule],
 })
 export class AuthModule {}

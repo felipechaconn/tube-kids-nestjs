@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 export class SigninKidDto {
   @IsNotEmpty()
@@ -7,5 +7,5 @@ export class SigninKidDto {
 
   @IsNotEmpty()
   @IsString()
-  pin_Kid: string;
+  pin_kid: string;
 }

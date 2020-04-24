@@ -13,8 +13,8 @@ export class CreateKidDto {
     @IsDate()
     birthday_kid: Date;
 
-    @IsNumber()
-    pin_kid: number;
+    @IsString()
+    pin_kid: string;
 
 
     @IsNotEmpty()

@@ -22,7 +22,7 @@ export class ReadKidDto {
 
     @Expose()
     @IsString()
-    readonly pin_kid: number;
+    readonly pin_kid: string;
     
     @Expose()
     @Type(type => ReadUserDto)

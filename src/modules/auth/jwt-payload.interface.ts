@@ -3,5 +3,4 @@ export interface IJwtPayload {
     firstName: string;
     phoneUser: string;
     iat?:Date;
-
 }

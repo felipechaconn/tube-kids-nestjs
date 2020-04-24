@@ -8,6 +8,7 @@ import { plainToClass } from 'class-transformer';
 import { In } from 'typeorm';
 import { CreateKidDto } from './dto/create-kid.dto';
 import { UpdateKidDto } from './dto/update-kid.dto';
+import { ReadUserDto, ReadUserByKidDto } from '../user/dto';
 
 @Injectable()
 export class KidService {
@@ -29,6 +30,17 @@ export class KidService {
         return plainToClass(ReadKidDto, kid);
       }
 
+      async getParentbyKid(id_kid: number): Promise<ReadUserByKidDto> {
+        if (!id_kid) {
+          throw new BadRequestException('id must be sent');
+        }
+        const kid: Kid = await this._kidRepository.findOne(id_kid);
+        if(!kid){
+          throw new NotFoundException('Id doesnt exists');
+        }
+        const creator = kid.creator;
+        return plainToClass(ReadUserByKidDto, creator);
+      }
       async getKidbyParent(creatorId: number): Promise<ReadKidDto[]> {
         if (!creatorId) {
           throw new BadRequestException('id must be sent');

@@ -29,8 +29,8 @@ import {
     @Column({ type: 'date',  nullable: false })
     birthday_kid: Date;
   
-    @Column({ type: 'varchar', length: 50, nullable: false })
-    pin_kid: number;
+    @Column({ type: 'varchar', length: 6, nullable: false })
+    pin_kid: string;
 
     @ManyToOne(type => User,creator => creator.kids,{eager:true})
     creator: User;

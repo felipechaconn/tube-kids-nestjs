@@ -9,7 +9,7 @@ export class UpdateKidDto {
     readonly username_kid: string;
 
     @IsString()
-    readonly pin_kid: number;
+    readonly pin_kid: string;
 
      creator? : User;
 }
