@@ -58,7 +58,7 @@
     "sendmail": "^1.6.1",
     "ts-mapper": "^1.2.4",
     "twilio": "^3.42.2",
-    "typeorm": "^0.2.24"
+    "typeorm": "^0.2.25"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.1.2",
